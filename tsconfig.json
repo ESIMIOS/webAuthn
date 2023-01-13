@@ -2,6 +2,7 @@
   "compilerOptions": {
     "declaration": true,
     "strict": true,
+    "strictNullChecks":false,
     "esModuleInterop": true,
     "outDir": "./lib",
     "sourceMap": true,
