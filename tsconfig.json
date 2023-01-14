@@ -10,7 +10,7 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "module": "commonjs",
-    "target": "ES5",
+    "target": "ES2015",
     "allowJs": true,
     "typeRoots": ["./node_modules/@types"]
   },
