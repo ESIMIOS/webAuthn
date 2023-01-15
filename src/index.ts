@@ -1,13 +1,71 @@
 /**
  *
+ * @module @esimios/webauthn
+ * 
  * Desarrollado con ayuda de:
  * https://itnext.io/step-by-step-building-and-publishing-an-npm-typescript-package-44fe7164964c
  * https://www.valentinog.com/blog/jest-coverage/
+ * https://www.w3.org/TR/webauthn/#attestation-statement-format
+ * https://developer.mozilla.org/en-US/docs/Web/API/AuthenticatorAssertionResponse
+ * 
+ * @author: @tirsomartinezreyes
  */
 
 import { sha256 } from 'js-sha256';
 import * as byteBase64 from 'byte-base64';
 import * as CBOR from 'cbor-redux';
+
+
+export type CredentialRegistrationData = {
+	id:string,
+	rawId:Uint8Array,
+	clienDataJSON: Uint8Array,
+	attestationObject: {
+		fmt: "packed", //Valid values  packed || fido-u2f || none || android-safetynet || android-key || tpm || apple
+		attStmt:{
+			alg: number, //COSEAlgorithmIdentifier
+			sig: Uint8Array, //Signature
+			x5c:Uint8Array[], //0 -> Certificate 1 -> CA Certificate (opcional)
+		},
+		authData:{
+			rpIdHash: Uint8Array,
+			flags: Uint8Array,
+			signCount: Uint8Array,
+			aaguid: Uint8Array,
+			credentialIdLength:Uint8Array,
+			credentialId:Uint8Array,
+			credentialPublicKey:Uint8Array, //CBOR Encoded
+			publicKey: { //COSE format (decoded from CBOR)
+				"1": 2, // Type: EC
+				"3": -7, //Alghoritm: ES256
+				"-1": 1, // Curve: P-256
+				"-2": Uint8Array, // X-coordinate
+				"-3": Uint8Array // Y-coordinate
+			}
+		}
+	},
+	type:'public-key'
+}
+
+
+export type CredentialAssertionData = {
+	authenticatorAttachment: "cross-platform",
+	id:string,
+	rawId:Uint8Array,
+	response:{
+		authenticatorData: {
+			rpIdHash: Uint8Array,
+			flags: Uint8Array,
+			signCount: Uint8Array
+		}
+		clientDataJSON: Uint8Array,
+		signature: Uint8Array,
+		userHandle: Uint8Array|null
+	}
+	type:'public-key',
+	signatureBase: Uint8Array
+}
+
 
 
 /* istanbul ignore next */
@@ -21,8 +79,11 @@ export function isPublicKeyCredentialSupported(): boolean {
   return response;
 }
 
+
+
 /**
  *
+ * @async
  * @param options : publicKeyCredentialCreationOptions
  * @returns Credential
  */
@@ -34,8 +95,11 @@ export async function createPublicKeyCredential(
   return credential;
 }
 
+
+
 /**
  * 
+ * @async
  * @param options: PulicKeyCredentialRequestOptions
  * @returns Credential
  */
@@ -47,14 +111,11 @@ export async function getAttestation( options: PublicKeyCredentialRequestOptions
 
 
 
-export type CredentialRegistrationData = {
-	id:string,
-	rawId:Uint8Array,
-	clienDataJSON: string,
-	attestationObject: any,
-	type:string
-}
-
+/**
+ * 
+ * @param credential : PublicKeyCredential
+ * @returns CredentialRegistrationData
+ */
 export function getCredentialRegistrationData(credential:PublicKeyCredential):CredentialRegistrationData{
 	let credentialResponse  = credential.response as AuthenticatorAttestationResponse;
 	const decodedAttestationObj = CBOR.decode(credentialResponse.attestationObject);
@@ -65,8 +126,8 @@ export function getCredentialRegistrationData(credential:PublicKeyCredential):Cr
 
 	let response = {
 		id:credential.id,
-		rawId:credential.rawId,
-		clienDataJSON: byteArrayToString(new Uint8Array(credentialResponse.clientDataJSON)),
+		rawId: new Uint8Array(credential.rawId),
+		clienDataJSON: new Uint8Array(credentialResponse.clientDataJSON),
 		attestationObject: {
 			fmt: decodedAttestationObj.fmt,
 			attStmt:{
@@ -76,7 +137,7 @@ export function getCredentialRegistrationData(credential:PublicKeyCredential):Cr
 			},
 			authData:{
 				rpIdHash: byteArrayRange(decodedAttestationObj.authData, 0, 32),
-				flags: decodedAttestationObj.authData[32],
+				flags: byteArrayRange(decodedAttestationObj.authData,32,1),
 				signCount: byteArrayRange(decodedAttestationObj.authData, 33, 4),
 				aaguid: byteArrayRange(decodedAttestationObj.authData, 37, 16),
 				credentialIdLength:byteArrayRange(decodedAttestationObj.authData, 53, 2),
@@ -92,15 +153,81 @@ export function getCredentialRegistrationData(credential:PublicKeyCredential):Cr
 
 
 
+/**
+ * 
+ * @param assertion 
+ * @returns 
+ */
+export function getCredentialAssertionData(assertion:PublicKeyCredential):CredentialAssertionData{
+	let assertionResponse  = assertion.response as AuthenticatorAssertionResponse;
+	let assertionResponseAuthenticatorDataUint8Array = new Uint8Array(assertionResponse.authenticatorData)
+	let rpIdHash = byteArrayRange(assertionResponseAuthenticatorDataUint8Array, 0, 32)
+	let flags = byteArrayRange(assertionResponseAuthenticatorDataUint8Array,32,1)
+	let signCount = byteArrayRange(assertionResponseAuthenticatorDataUint8Array, 33, 4)
+	let clientDataHash = new Uint8Array(sha256.array(assertionResponse.clientDataJSON))
+	let signatureBase = new Uint8Array([...rpIdHash, ...flags, ...signCount, ...clientDataHash])
+
+	let response = {
+		authenticatorAttachment: "cross-platform",
+		id:assertion.id,
+		rawId:new Uint8Array(assertion.rawId),
+		response:{
+			authenticatorData:{
+				rpIdHash,
+				flags,
+				signCount
+			},
+			clientDataJSON:new Uint8Array(assertionResponse.clientDataJSON),
+			signature:new Uint8Array(assertionResponse.signature),
+			userHandle:assertionResponse.userHandle
+		},
+		type:assertion.type,
+		signatureBase
+	} as CredentialAssertionData
+	return response;
+}
+
+
+
+/**
+ * 
+ * @param x :Uint8Array
+ * @param y :Uint8Array
+ * @returns ASN1 public key
+ */
+export function COSEtoASN1PublicKey(x:Uint8Array,y:Uint8Array):Uint8Array {
+	let response = new Uint8Array([...[0x04, ...x, ...y]]);
+	return response;
+}
+
+
+
+/**
+ * 
+ * @param signature : Uint8Array
+ * @param signatureBase : Uint8Array
+ * @param ASN1PublicKey : Uint8Array
+ * @returns boolean
+ */
+export function verifyECP256Signature( signature: Uint8Array, signatureBase: Uint8Array, ASN1PublicKey:Uint8Array): boolean {
+	let response = false;
+	let message = new Uint8Array(sha256.array(signatureBase))
+	const EC = require('elliptic').ec;
+	const curve = new EC('p256');
+	const key = curve.keyFromPublic(ASN1PublicKey);
+	response = key.verify(message,signature);
+	return response
+}
+
+
 
 /**
  * 
  * @param pkBuffer :uint8Array
  * @returns string
- * @example 
  */
 export function ASN1ECP256PublicKeyByteArrayToPEMString(pkBuffer: Uint8Array): string {
-  let type;
+  let type = 'PUBLIC KEY';
   if (pkBuffer.length == 65 && pkBuffer[0] == 0x04) {
 		/*
 		Se agrega cabezera de public key a raw public key
@@ -116,22 +243,22 @@ export function ASN1ECP256PublicKeyByteArrayToPEMString(pkBuffer: Uint8Array): s
       ...hexStringToByteArray('3059301306072a8648ce3d020106082a8648ce3d030107034200'),
       ...pkBuffer,
     ]);
-    type = 'PUBLIC KEY';
-  } else {
-    type = 'CERTIFICATE';
-  }
-  let b64cert = byteArrayToBase64(pkBuffer);
+  } 
+
+  let b64content = byteArrayToBase64(pkBuffer);
   let PEMKey = '';
-  for (let i = 0; i < Math.ceil(b64cert.length / 64); i++) {
+  for (let i = 0; i < Math.ceil(b64content.length / 64); i++) {
     let start = 64 * i;
-    PEMKey += b64cert.substring(start, start+64) + '\n';
+    PEMKey += b64content.substring(start, start+64) + '\n';
   }
 
   PEMKey = `-----BEGIN ${type}-----\n` + PEMKey + `-----END ${type}-----\n`;
   return PEMKey;
 }
 
-//Funciones de utilidad para transformar datos entre string, Uint8Array, hexString y base64
+
+
+//=======Funciones de utilidad para transformar datos entre string, Uint8Array, hexString y base64 ======
 //	stringTo - ByteArray, HexString, Base64
 //	byteArrayTo - String, HexString, Base64, Uint16BigEndian, Uint32BigEndian, BinaryString
 //	hexStringTo -  ByteArray
@@ -147,6 +274,8 @@ export function ASN1ECP256PublicKeyByteArrayToPEMString(pkBuffer: Uint8Array): s
 export function stringToByteArray(str: string): Uint8Array {
   return Uint8Array.from(str, (c) => c.charCodeAt(0));
 }
+
+
 
 /**
  *
@@ -166,6 +295,8 @@ export function byteArrayToHexString(uint8array: Uint8Array, space: boolean = tr
   return '';
 }
 
+
+
 /**
  *
  * @param hexString :string
@@ -179,6 +310,8 @@ export function hexStringToByteArray(hexString: string): Uint8Array {
   }
   return new Uint8Array(uint8array);
 }
+
+
 
 /**
  *
@@ -203,6 +336,8 @@ export function byteArrayToString(uint8array: Uint8Array): string {
   return '';
 }
 
+
+
 /**
  *
  * @param uint8array : Uint8Array
@@ -216,6 +351,8 @@ export function byteArrayToBase64(uint8array: Uint8Array): string {
   }
   return response;
 }
+
+
 
 /**
  *
@@ -238,6 +375,8 @@ export function stringToBase64(str: string): string {
   return byteBase64.base64encode(str, encoder);
 }
 
+
+
 /**
  *
  * @param uint8array:Uint8Array
@@ -259,6 +398,8 @@ export function byteArrayRange(uint8array: Uint8Array, start: number, length?: n
   return new Uint8Array();
 }
 
+
+
 /**
  *
  * @param uint8array : Uint8Array
@@ -277,6 +418,8 @@ export function byteArrayToUint16BigEndian(uint8array: Uint8Array): number {
     return 0;
   }
 }
+
+
 
 /**
  *
@@ -297,6 +440,8 @@ export function byteArrayToUint32BigEndian(uint8array: Uint8Array): number {
   return 0;
 }
 
+
+
 /**
  *
  * @param uint8array:Uint8Array
@@ -311,6 +456,8 @@ export function byteArrayToBinaryString(uint8array: Uint8Array): string {
   return output;
 }
 
+
+
 /**
  *
  * @param message:string|Uint8Array
@@ -322,6 +469,8 @@ export function byteArrayToBinaryString(uint8array: Uint8Array): string {
 export function stringSHA256(message: string | Uint8Array): string {
   return sha256(message || '');
 }
+
+
 
 /**
  *

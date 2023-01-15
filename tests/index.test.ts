@@ -14,9 +14,15 @@ import {
   stringSHA256,
   ASN1ECP256PublicKeyByteArrayToPEMString,
   getCredentialRegistrationData,
-  CredentialRegistrationData} from '../src/index';
+  CredentialRegistrationData,
+  getCredentialAssertionData,
+  CredentialAssertionData,
+  verifyECP256Signature,
+  COSEtoASN1PublicKey
+} from '../src/index';
 
 import {createOptions,createdCredential, requestOptions, assertion } from "../__mocks__/publicKeyCredential"
+import { number, string } from 'yargs';
 
 //isPublicKeyCredentialSupported
 test('isPublicKeyCredentialSupported', () => {
@@ -118,7 +124,7 @@ test('byteArrayRange with Uint8Array from Hex from 2, 5 elements', () => {
   expect(byteArrayRange(new Uint8Array([0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09]), 2, 5)).toStrictEqual(new Uint8Array([2,3,4,5,6]))
 })
 
-test('byteArrayRange with Uint8Array from Hex from 5 all remaint elements', () => {
+test('byteArrayRange with Uint8Array from Hex from 5 all remain elements', () => {
   expect(byteArrayRange(new Uint8Array([0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09]),5)).toStrictEqual(new Uint8Array([5,6,7,8,9]))
 })
 
@@ -208,17 +214,85 @@ test('hexStringToByteArray with string',()=>{
 
 test('ASN1ECP256PublicKeyByteArrayToPEMString ',()=>{
   expect(ASN1ECP256PublicKeyByteArrayToPEMString(hexStringToByteArray("3059301306072a8648ce3d020106082a8648ce3d03010703420004c30866f2155c3d8b890c7a60913572088e3903a0e4f2a5f41b70072349bc8fca48e4e464b90479853442ec165dc1b0b2deb97f95fb05d090a4eec35f603a684c")))
-  .toBe(`-----BEGIN CERTIFICATE-----
+  .toBe(`-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwwhm8hVcPYuJDHpgkTVyCI45A6Dk
 8qX0G3AHI0m8j8pI5ORkuQR5hTRC7BZdwbCy3rl/lfsF0JCk7sNfYDpoTA==
------END CERTIFICATE-----
+-----END PUBLIC KEY-----
 `)
+expect(ASN1ECP256PublicKeyByteArrayToPEMString(new Uint8Array([...[0x04,],...[2,1,144,47,16,24,147,220,231,124,38,238,214,140,205,57,11,51,200,183,6,63,124,229,69,127,177,153,168,107,206,231],...[83,135,6,163,48,165,242,230,144,180,55,212,47,154,149,54,255,81,249,54,127,199,101,47,94,202,33,253,248,77,205,239]])))
+.toBe(`-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEAgGQLxAYk9znfCbu1ozNOQszyLcG
+P3zlRX+xmahrzudThwajMKXy5pC0N9QvmpU2/1H5Nn/HZS9eyiH9+E3N7w==
+-----END PUBLIC KEY-----
+`)
+
 })
 
 
 
 
-//PublicKeyCredential
-let credentialRegistrationData = getCredentialRegistrationData(createdCredential)
-console.log(credentialRegistrationData)
+//getCredentialRegistrationData
+let credentialRegistrationData:CredentialRegistrationData = getCredentialRegistrationData(createdCredential)
+test('getCredentialRegistrationData',()=>{
+  expect(credentialRegistrationData.type).toBe('public-key')
+  expect(typeof credentialRegistrationData.id).toBe('string')
+  expect(credentialRegistrationData.rawId).toBeInstanceOf(Uint8Array)
+  expect(credentialRegistrationData.clienDataJSON).toBeInstanceOf(Uint8Array)
+  expect(credentialRegistrationData.attestationObject.fmt).toBe("packed")
+  expect(credentialRegistrationData.attestationObject.attStmt).toBeInstanceOf(Object)
+  expect(credentialRegistrationData.attestationObject.authData).toBeInstanceOf(Object)
+  expect(credentialRegistrationData.attestationObject.authData.rpIdHash).toBeInstanceOf(Uint8Array)
+  expect(credentialRegistrationData.attestationObject.authData.flags).toBeInstanceOf(Uint8Array)
+  expect(credentialRegistrationData.attestationObject.authData.credentialId).toBeInstanceOf(Uint8Array)
+  expect(credentialRegistrationData.attestationObject.authData.credentialPublicKey).toBeInstanceOf(Uint8Array)
+  expect(credentialRegistrationData.attestationObject.authData.publicKey).toBeInstanceOf(Object)
+  expect(credentialRegistrationData.attestationObject.authData.publicKey["1"]).toBe(2)
+  expect(credentialRegistrationData.attestationObject.authData.publicKey["3"]).toBe(-7)
+  expect(credentialRegistrationData.attestationObject.authData.publicKey["-1"]).toBe(1)
+  expect(credentialRegistrationData.attestationObject.authData.publicKey["-2"]).toBeInstanceOf(Uint8Array)
+  expect(credentialRegistrationData.attestationObject.authData.publicKey["-3"]).toBeInstanceOf(Uint8Array)
+})
 
+//getCredentialAssertionData
+let credentialAssertionData:CredentialAssertionData = getCredentialAssertionData(assertion)
+test('getCredentialAssertionData',()=>{
+  expect(credentialAssertionData.authenticatorAttachment).toBe('cross-platform')
+  expect(credentialAssertionData.type).toBe('public-key')
+  expect(typeof credentialAssertionData.id).toBe('string')
+  expect(credentialAssertionData.rawId).toBeInstanceOf(Uint8Array)
+  expect(credentialAssertionData.signatureBase).toBeInstanceOf(Uint8Array)
+  expect(credentialAssertionData.response.clientDataJSON).toBeInstanceOf(Uint8Array)
+  expect(credentialAssertionData.response.signature).toBeInstanceOf(Uint8Array)
+  expect(credentialAssertionData.response.authenticatorData).toBeInstanceOf(Object)
+  expect(credentialAssertionData.response.authenticatorData.rpIdHash).toBeInstanceOf(Uint8Array)
+  expect(credentialAssertionData.response.authenticatorData.flags).toBeInstanceOf(Uint8Array)
+  expect(credentialAssertionData.response.authenticatorData.signCount).toBeInstanceOf(Uint8Array)
+})
+
+//COSEtoASN1PublicKey
+test('COSEtoASN1PublicKey',()=>{
+  expect(COSEtoASN1PublicKey(credentialRegistrationData.attestationObject.authData.publicKey["-2"],credentialRegistrationData.attestationObject.authData.publicKey["-3"])).toStrictEqual(new Uint8Array([...[0x04,],...[2,1,144,47,16,24,147,220,231,124,38,238,214,140,205,57,11,51,200,183,6,63,124,229,69,127,177,153,168,107,206,231],...[83,135,6,163,48,165,242,230,144,180,55,212,47,154,149,54,255,81,249,54,127,199,101,47,94,202,33,253,248,77,205,239]]))
+})
+
+
+//verifyECP256Signature
+test('verifyECP256Signature',()=>{
+  //CORRECTOS
+  let publicKey = COSEtoASN1PublicKey(credentialRegistrationData.attestationObject.authData.publicKey["-2"],credentialRegistrationData.attestationObject.authData.publicKey["-3"])
+  expect(verifyECP256Signature(credentialAssertionData.response.signature, credentialAssertionData.signatureBase, publicKey)).toBe(true)
+
+  //INCORRECTOS
+  let invalidPublicKey = new Uint8Array([...publicKey])
+  let invalidSignature = new Uint8Array([...credentialAssertionData.response.signature])
+  let invalidSignatureBase = new Uint8Array([...credentialAssertionData.signatureBase])
+  invalidPublicKey[1] = 0xFF
+  invalidSignature[10] = 0xFF
+  invalidSignatureBase[1] = 0xFF
+  expect(verifyECP256Signature(invalidSignature, invalidSignatureBase, invalidPublicKey)).toBe(false)
+  expect(verifyECP256Signature(invalidSignature, invalidSignatureBase, publicKey)).toBe(false)
+  expect(verifyECP256Signature(invalidSignature, credentialAssertionData.signatureBase, invalidPublicKey)).toBe(false)
+  expect(verifyECP256Signature(invalidSignature, credentialAssertionData.signatureBase, publicKey)).toBe(false)
+  expect(verifyECP256Signature(credentialAssertionData.response.signature, invalidSignatureBase, invalidPublicKey)).toBe(false)
+  expect(verifyECP256Signature(credentialAssertionData.response.signature, invalidSignatureBase, publicKey)).toBe(false)
+  expect(verifyECP256Signature(credentialAssertionData.response.signature, credentialAssertionData.signatureBase, invalidPublicKey)).toBe(false)
+})

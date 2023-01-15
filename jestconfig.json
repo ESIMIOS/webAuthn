@@ -10,10 +10,10 @@
     "coverageDirectory": "./__coverage__",
     "coverageThreshold": {
     "global": {
-        "branches": 70,
-        "functions": 90,
-        "lines": 70,
-        "statements": 75
+        "branches": 80,
+        "functions": 100,
+        "lines": 90,
+        "statements": 90
     }
     }
 
