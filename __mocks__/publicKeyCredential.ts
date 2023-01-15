@@ -1,14 +1,20 @@
-//https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredential
+//https://www.w3.org/TR/webauthn-1/Overview.html
+
+
+//https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredentialRequestOptions
+//https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API/Attestation_and_Assertion
+//https://udn.realityripple.com/docs/Web/API/PublicKeyCredentialCreationOptions/attestation
+
 export const createOptions =  {
-    challenge: new Uint8Array([97,98,114,97,99,97,100,97,98,114,97]),
+    challenge: new Uint8Array([97,98,114,97,99,97,100,97,98,114,97]), //abracadabra
     rp: {
       name: "COFEPRIS TRÁMITES DIGITALES",
       id: "localhost",
     },
     user: {
-      id: new Uint8Array([97,98,114,97,99,97,100,97,98,114,97]),
-      name: "MART810609HDFRYR03",
-      displayName: "Tirso Martínez"
+      id: new Uint8Array([0x55, 0x53, 0x45, 0x52, 0x4e, 0x41, 0x4d, 0x45]),
+      name: "USERNAME",
+      displayName: "Nombre del Usuario"
     },
     pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
     authenticatorSelection: {
@@ -18,10 +24,15 @@ export const createOptions =  {
     },
     timeout: 60000,
     attestation: 'direct',
-    attestatinFormats: ['packed']
+    attestationFormats: ['packed']
   } as PublicKeyCredentialCreationOptions
 
-  
+
+
+  //https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredential
+  //https://udn.realityripple.com/docs/Web/API/PublicKeyCredential
+  //https://udn.realityripple.com/docs/Web/API/AuthenticatorResponse
+  //https://udn.realityripple.com/docs/Web/API/AuthenticatorAttestationResponse
   export const createdCredential = {
     authenticatorAttachment: "cross-platform",
     id:"4esfJVZKm1laAtIdyCASuMwQ91g9Z_cSyzGQ_A9GnUBU-6OOvwmI1sr6KnIeQD914cn_Np1elnYFhN_7MepnDG001U3btWotPHl7VTgNqLz8wKVdBX-B7oUyAvikFygg",
@@ -36,8 +47,9 @@ export const createOptions =  {
 
 
 
+  //https://udn.realityripple.com/docs/Web/API/PublicKeyCredentialRequestOptions
   export const requestOptions = {
-    challenge: new Uint8Array([97,98,114,97,99,97,100,97,98,114,97]),
+    challenge: new Uint8Array([97,98,114,97,99,97,100,97,98,114,97]), //abracadabra
     allowCredentials: [{
       id: new Uint8Array([225,235,31,37,86,74,155,89,90,2,210,29,200,32,18,184,204,16,247,88,61,103,247,18,203,49,144,252,15,70,157,64,84,251,163,142,191,9,136,214,202,250,42,114,30,64,63,117,225,201,255,54,157,94,150,118,5,132,223,251,49,234,103,12,109,52,213,77,219,181,106,45,60,121,123,85,56,13,168,188,252,192,165,93,5,127,129,238,133,50,2,248,164,23,40,32]),
       type: "public-key",
@@ -46,7 +58,10 @@ export const createOptions =  {
   } as PublicKeyCredentialRequestOptions
 
 
-
+  //https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredential
+  //https://udn.realityripple.com/docs/Web/API/PublicKeyCredential
+  //https://udn.realityripple.com/docs/Web/API/AuthenticatorResponse
+  //https://udn.realityripple.com/docs/Web/API/AuthenticatorAssertionResponse
   export const assertion = {
     authenticatorAttachment: "cross-platform",
     id: "4esfJVZKm1laAtIdyCASuMwQ91g9Z_cSyzGQ_A9GnUBU-6OOvwmI1sr6KnIeQD914cn_Np1elnYFhN_7MepnDG001U3btWotPHl7VTgNqLz8wKVdBX-B7oUyAvikFygg",
