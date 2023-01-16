@@ -2,6 +2,7 @@
   "compilerOptions": {
     "declaration": true,
     "strict": true,
+    "strictNullChecks":false,
     "esModuleInterop": true,
     "outDir": "./lib",
     "sourceMap": true,
@@ -9,10 +10,10 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "module": "commonjs",
-    "target": "ES5",
+    "target": "ES2015",
     "allowJs": true,
     "typeRoots": ["./node_modules/@types"]
   },
   "include": ["./src/**/*"],
-  "exclude": ["node_modules", "./src/**__tests__/**/*", ".src/**__mocks__/**/*"]
+  "exclude": ["node_modules", "./__tests__/**/*", "./__mocks__/**/*","./__coverage__/**/*"]
 }
