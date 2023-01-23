@@ -304,8 +304,8 @@ export function byteArrayToHexString(uint8array: Uint8Array, space: boolean = tr
  * @example hexStringToByteArray('48656c6c6f20576f726c64') // Uint8Array(11) [72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100]
  */
 export function hexStringToByteArray(hexString: string): Uint8Array {
-  var uint8array = [];
-  for (var i = 0; i < hexString.length; i += 2) {
+  let uint8array = [];
+  for (let i = 0; i < hexString.length; i += 2) {
     uint8array.push(parseInt(hexString.substring(i, i+2), 16));
   }
   return new Uint8Array(uint8array);
