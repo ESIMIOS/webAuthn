@@ -3,7 +3,7 @@ export type CredentialRegistrationData = {
     rawId: Uint8Array;
     clienDataJSON: Uint8Array;
     attestationObject: {
-        fmt: "packed";
+        fmt: 'packed';
         attStmt: {
             alg: number;
             sig: Uint8Array;
@@ -18,18 +18,18 @@ export type CredentialRegistrationData = {
             credentialId: Uint8Array;
             credentialPublicKey: Uint8Array;
             publicKey: {
-                "1": 2;
-                "3": -7;
-                "-1": 1;
-                "-2": Uint8Array;
-                "-3": Uint8Array;
+                '1': 2;
+                '3': -7;
+                '-1': 1;
+                '-2': Uint8Array;
+                '-3': Uint8Array;
             };
         };
     };
     type: 'public-key';
 };
 export type CredentialAssertionData = {
-    authenticatorAttachment: "cross-platform";
+    authenticatorAttachment: 'cross-platform';
     id: string;
     rawId: Uint8Array;
     response: {
@@ -65,3 +65,6 @@ export declare function byteArrayToUint32BigEndian(uint8array: Uint8Array): numb
 export declare function byteArrayToBinaryString(uint8array: Uint8Array): string;
 export declare function stringSHA256(message: string | Uint8Array): string;
 export declare function stringToHexString(str: string): string;
+export declare function base64ToByteArray(base64: string): Uint8Array;
+export declare function base64ToString(base64: string): string;
+export declare function base64ToHexString(base64: string): string;
