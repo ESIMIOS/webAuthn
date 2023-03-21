@@ -12,6 +12,9 @@ import {
   stringToByteArray,
   hexStringToByteArray,
   stringSHA256,
+  base64ToByteArray,
+  base64ToString,
+  base64ToHexString,
   ASN1ECP256PublicKeyByteArrayToPEMString,
   getCredentialRegistrationData,
   CredentialRegistrationData,
@@ -228,7 +231,29 @@ P3zlRX+xmahrzudThwajMKXy5pC0N9QvmpU2/1H5Nn/HZS9eyiH9+E3N7w==
 
 })
 
+//base64ToByteArray
+test('base64ToByteArray',()=>{
+  expect(base64ToByteArray("AAECAwQFBgcICQ=="))
+  .toStrictEqual(new Uint8Array([0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09]))
 
+  expect(base64ToByteArray("SGVsbG8gV29ybGQ="))
+  .toStrictEqual(new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64]))
+})
+
+
+//base64ToString
+test('base64ToString',()=>{
+  expect(base64ToString("SGVsbG8gV29ybGQ=")).toBe("Hello World")
+  expect(base64ToString("SGVsbG8gV29ybGQh")).toBe("Hello World!")
+  expect(base64ToString("SGVsbG8gV29ybGQhIQ==")).toBe("Hello World!!")
+})
+
+//base64ToHexString
+test('base64ToHexString',()=>{
+  expect(base64ToHexString("SGVsbG8gV29ybGQ=")).toBe("48656c6c6f20576f726c64")
+  expect(base64ToHexString("SGVsbG8gV29ybGQh")).toBe("48656c6c6f20576f726c6421")
+  expect(base64ToHexString("SGVsbG8gV29ybGQhIQ==")).toBe("48656c6c6f20576f726c642121")
+})
 
 
 //getCredentialRegistrationData
