@@ -250,9 +250,12 @@ test('base64ToString',()=>{
 
 //base64ToHexString
 test('base64ToHexString',()=>{
-  expect(base64ToHexString("SGVsbG8gV29ybGQ=")).toBe("48656c6c6f20576f726c64")
-  expect(base64ToHexString("SGVsbG8gV29ybGQh")).toBe("48656c6c6f20576f726c6421")
-  expect(base64ToHexString("SGVsbG8gV29ybGQhIQ==")).toBe("48656c6c6f20576f726c642121")
+  expect(base64ToHexString("SGVsbG8gV29ybGQ=")).toBe("48 65 6c 6c 6f 20 57 6f 72 6c 64")
+  expect(base64ToHexString("SGVsbG8gV29ybGQh")).toBe("48 65 6c 6c 6f 20 57 6f 72 6c 64 21")
+  expect(base64ToHexString("SGVsbG8gV29ybGQhIQ==")).toBe("48 65 6c 6c 6f 20 57 6f 72 6c 64 21 21")
+  expect(base64ToHexString("SGVsbG8gV29ybGQ=",false)).toBe("48656c6c6f20576f726c64")
+  expect(base64ToHexString("SGVsbG8gV29ybGQh",false)).toBe("48656c6c6f20576f726c6421")
+  expect(base64ToHexString("SGVsbG8gV29ybGQhIQ==",false)).toBe("48656c6c6f20576f726c642121")
 })
 
 
@@ -305,7 +308,7 @@ test('verifyECP256Signature',()=>{
   //CORRECTOS
   let publicKey = COSEtoASN1PublicKey(credentialRegistrationData.attestationObject.authData.publicKey["-2"],credentialRegistrationData.attestationObject.authData.publicKey["-3"])
   expect(verifyECP256Signature(credentialAssertionData.response.signature, credentialAssertionData.signatureBase, publicKey)).toBe(true)
-
+  
   //INCORRECTOS
   let invalidPublicKey = new Uint8Array([...publicKey])
   let invalidSignature = new Uint8Array([...credentialAssertionData.response.signature])
