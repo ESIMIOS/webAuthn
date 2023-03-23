@@ -7,6 +7,7 @@
  * https://www.valentinog.com/blog/jest-coverage/
  * https://www.w3.org/TR/webauthn/#attestation-statement-format
  * https://developer.mozilla.org/en-US/docs/Web/API/AuthenticatorAssertionResponse
+ * https://github.com/psteniusubi/webauthn-tester
  *
  * @author: @tirsomartinezreyes
  */
@@ -14,6 +15,7 @@
 import { sha256 } from 'js-sha256';
 import * as byteBase64 from 'byte-base64';
 import * as CBOR from 'cbor-redux';
+import { BinaryReader, CborSimpleDecoder } from './CborSimpleDecoder';
 
 export type CredentialRegistrationData = {
   id: string;
@@ -110,11 +112,14 @@ export function getCredentialRegistrationData(credential: PublicKeyCredential): 
   const decodedAttestationObj = CBOR.decode(credentialResponse.attestationObject);
   let rpIdHash = byteArrayRange(decodedAttestationObj.authData, 0, 32);
   let flags = byteArrayRange(decodedAttestationObj.authData, 32, 1);
-  let signCount = byteArrayRange(decodedAttestationObj.authData, 33, 4)
+  let signCount = byteArrayRange(decodedAttestationObj.authData, 33, 4);
 
   let credentialIdLength = byteArrayToUint16BigEndian(byteArrayRange(decodedAttestationObj.authData, 53, 2));
   let credentialId = byteArrayRange(decodedAttestationObj.authData, 55, credentialIdLength);
   let credentialPublicKey = byteArrayRange(decodedAttestationObj.authData, 55 + credentialIdLength);
+  let publicKey = CborSimpleDecoder.readObject(new BinaryReader(credentialPublicKey.buffer));
+  publicKey['-2'] = new Uint8Array(publicKey['-2']);
+  publicKey['-3'] = new Uint8Array(publicKey['-3']);
 
   let response = {
     id: credential.id,
@@ -135,10 +140,10 @@ export function getCredentialRegistrationData(credential: PublicKeyCredential): 
         credentialIdLength: byteArrayRange(decodedAttestationObj.authData, 53, 2),
         credentialId: credentialId,
         credentialPublicKey: credentialPublicKey,
-        publicKey: CBOR.decode(credentialPublicKey.buffer),
+        publicKey
       },
     },
-    type: credential.type
+    type: credential.type,
   } as CredentialRegistrationData;
   return response;
 }
@@ -485,8 +490,8 @@ export function base64ToString(base64: string): string {
  * @example base64ToHexString('SGVsbG8gV29ybGQhIQ==') //'48 65 6c 6c 6f 20 57 6f 72 6c 64 21 21'
  *
  */
-export function base64ToHexString(base64: string, separator:boolean=true): string {
-  return byteArrayToHexString(base64ToByteArray(base64),separator);
+export function base64ToHexString(base64: string, separator: boolean = true): string {
+  return byteArrayToHexString(base64ToByteArray(base64), separator);
 }
 
-export const SHA256 = sha256
+export const SHA256 = sha256;
