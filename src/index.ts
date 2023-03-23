@@ -84,7 +84,7 @@ export function isPublicKeyCredentialSupported(): boolean {
  */
 /* istanbul ignore next */
 export async function createPublicKeyCredential(options: PublicKeyCredentialCreationOptions): Promise<Credential> {
-  let credential = navigator.credentials.create({ publicKey: options });
+  let credential = await navigator.credentials.create({ publicKey: options });
   return credential;
 }
 
@@ -96,7 +96,7 @@ export async function createPublicKeyCredential(options: PublicKeyCredentialCrea
  */
 /* istanbul ignore next */
 export async function getAttestation(options: PublicKeyCredentialRequestOptions): Promise<globalThis.Credential> {
-  let credential = navigator.credentials.get({ publicKey: options });
+  let credential = await navigator.credentials.get({ publicKey: options });
   return credential;
 }
 
@@ -108,6 +108,9 @@ export async function getAttestation(options: PublicKeyCredentialRequestOptions)
 export function getCredentialRegistrationData(credential: PublicKeyCredential): CredentialRegistrationData {
   let credentialResponse = credential.response as AuthenticatorAttestationResponse;
   const decodedAttestationObj = CBOR.decode(credentialResponse.attestationObject);
+  let rpIdHash = byteArrayRange(decodedAttestationObj.authData, 0, 32);
+  let flags = byteArrayRange(decodedAttestationObj.authData, 32, 1);
+  let signCount = byteArrayRange(decodedAttestationObj.authData, 33, 4)
 
   let credentialIdLength = byteArrayToUint16BigEndian(byteArrayRange(decodedAttestationObj.authData, 53, 2));
   let credentialId = byteArrayRange(decodedAttestationObj.authData, 55, credentialIdLength);
@@ -125,9 +128,9 @@ export function getCredentialRegistrationData(credential: PublicKeyCredential): 
         x5c: decodedAttestationObj.attStmt.x5c,
       },
       authData: {
-        rpIdHash: byteArrayRange(decodedAttestationObj.authData, 0, 32),
-        flags: byteArrayRange(decodedAttestationObj.authData, 32, 1),
-        signCount: byteArrayRange(decodedAttestationObj.authData, 33, 4),
+        rpIdHash,
+        flags,
+        signCount,
         aaguid: byteArrayRange(decodedAttestationObj.authData, 37, 16),
         credentialIdLength: byteArrayRange(decodedAttestationObj.authData, 53, 2),
         credentialId: credentialId,
@@ -135,7 +138,7 @@ export function getCredentialRegistrationData(credential: PublicKeyCredential): 
         publicKey: CBOR.decode(credentialPublicKey.buffer),
       },
     },
-    type: credential.type,
+    type: credential.type
   } as CredentialRegistrationData;
   return response;
 }
@@ -472,12 +475,18 @@ export function base64ToString(base64: string): string {
 
 /**
  * @param base64:string
+ * @param separator:boolean
  * @returns string
- * @example base64ToHexString('SGVsbG8gV29ybGQ=') //'48656c6c6f20576f726c64'
- * @example base64ToHexString('SGVsbG8gV29ybGQh') //'48656c6c6f20576f726c6421'
- * @example base64ToHexString('SGVsbG8gV29ybGQhIQ==') //'48656c6c6f20576f726c642121'
+ * @example base64ToHexString('SGVsbG8gV29ybGQ=',false) //'48656c6c6f20576f726c64'
+ * @example base64ToHexString('SGVsbG8gV29ybGQh',false) //'48656c6c6f20576f726c6421'
+ * @example base64ToHexString('SGVsbG8gV29ybGQhIQ==',false) //'48656c6c6f20576f726c642121'
+ * @example base64ToHexString('SGVsbG8gV29ybGQ=') //'48 65 6c 6c 6f 20 57 6f 72 6c 64'
+ * @example base64ToHexString('SGVsbG8gV29ybGQh') //'48 65 6c 6c 6f 20 57 6f 72 6c 64 21'
+ * @example base64ToHexString('SGVsbG8gV29ybGQhIQ==') //'48 65 6c 6c 6f 20 57 6f 72 6c 64 21 21'
  *
  */
-export function base64ToHexString(base64: string): string {
-  return byteArrayToHexString(base64ToByteArray(base64));
+export function base64ToHexString(base64: string, separator:boolean=true): string {
+  return byteArrayToHexString(base64ToByteArray(base64),separator);
 }
+
+export const SHA256 = sha256
