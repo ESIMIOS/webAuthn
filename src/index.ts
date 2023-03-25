@@ -14,7 +14,7 @@
 
 import { sha256 } from 'js-sha256';
 import * as byteBase64 from 'byte-base64';
-import * as CBOR from 'cbor-redux';
+import * as cbor from 'cbor-redux';
 import { BinaryReader, CborSimpleDecoder } from './CborSimpleDecoder';
 
 export type CredentialRegistrationData = {
@@ -97,7 +97,7 @@ export async function createPublicKeyCredential(options: PublicKeyCredentialCrea
  * @returns Credential
  */
 /* istanbul ignore next */
-export async function getAttestation(options: PublicKeyCredentialRequestOptions): Promise<globalThis.Credential> {
+export async function getAssertion(options: PublicKeyCredentialRequestOptions): Promise<globalThis.Credential> {
   let credential = await navigator.credentials.get({ publicKey: options });
   return credential;
 }
@@ -109,7 +109,7 @@ export async function getAttestation(options: PublicKeyCredentialRequestOptions)
  */
 export function getCredentialRegistrationData(credential: PublicKeyCredential): CredentialRegistrationData {
   let credentialResponse = credential.response as AuthenticatorAttestationResponse;
-  const decodedAttestationObj = CBOR.decode(credentialResponse.attestationObject);
+  const decodedAttestationObj = cbor.decode(credentialResponse.attestationObject);
   let rpIdHash = byteArrayRange(decodedAttestationObj.authData, 0, 32);
   let flags = byteArrayRange(decodedAttestationObj.authData, 32, 1);
   let signCount = byteArrayRange(decodedAttestationObj.authData, 33, 4);
@@ -174,7 +174,7 @@ export function getCredentialAssertionData(assertion: PublicKeyCredential): Cred
       },
       clientDataJSON: new Uint8Array(assertionResponse.clientDataJSON),
       signature: new Uint8Array(assertionResponse.signature),
-      userHandle: assertionResponse.userHandle,
+      userHandle: new Uint8Array(assertionResponse.userHandle),
     },
     type: assertion.type,
     signatureBase,
@@ -495,3 +495,7 @@ export function base64ToHexString(base64: string, separator: boolean = true): st
 }
 
 export const SHA256 = sha256;
+export const CBOR = cbor;
+export const BINARY_READER = BinaryReader
+export const CBOR_SIMPLE_DECODER = CborSimpleDecoder
+export const BYTE_BASE64 = byteBase64

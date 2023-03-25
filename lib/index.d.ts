@@ -1,3 +1,6 @@
+import * as byteBase64 from 'byte-base64';
+import * as cbor from 'cbor-redux';
+import { BinaryReader, CborSimpleDecoder } from './CborSimpleDecoder';
 export type CredentialRegistrationData = {
     id: string;
     rawId: Uint8Array;
@@ -47,7 +50,7 @@ export type CredentialAssertionData = {
 };
 export declare function isPublicKeyCredentialSupported(): boolean;
 export declare function createPublicKeyCredential(options: PublicKeyCredentialCreationOptions): Promise<Credential>;
-export declare function getAttestation(options: PublicKeyCredentialRequestOptions): Promise<globalThis.Credential>;
+export declare function getAssertion(options: PublicKeyCredentialRequestOptions): Promise<globalThis.Credential>;
 export declare function getCredentialRegistrationData(credential: PublicKeyCredential): CredentialRegistrationData;
 export declare function getCredentialAssertionData(assertion: PublicKeyCredential): CredentialAssertionData;
 export declare function COSEtoASN1PublicKey(x: Uint8Array, y: Uint8Array): Uint8Array;
@@ -67,4 +70,9 @@ export declare function stringSHA256(message: string | Uint8Array): string;
 export declare function stringToHexString(str: string): string;
 export declare function base64ToByteArray(base64: string): Uint8Array;
 export declare function base64ToString(base64: string): string;
-export declare function base64ToHexString(base64: string): string;
+export declare function base64ToHexString(base64: string, separator?: boolean): string;
+export declare const SHA256: import("js-sha256").Hash;
+export declare const CBOR: typeof cbor;
+export declare const BINARY_READER: typeof BinaryReader;
+export declare const CBOR_SIMPLE_DECODER: typeof CborSimpleDecoder;
+export declare const BYTE_BASE64: typeof byteBase64;
