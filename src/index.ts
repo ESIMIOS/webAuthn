@@ -494,6 +494,45 @@ export function base64ToHexString(base64: string, separator: boolean = true): st
   return byteArrayToHexString(base64ToByteArray(base64), separator);
 }
 
+
+/**
+ * 
+ * @param base64url:string
+ * @returns string
+ * @example base64UrlToBase64('SGVsbG8gV29ybGQ') //'SGVsbG8gV29ybGQ='
+ * @example base64UrlToBase64('tPP6NfI3MUs5gL9O8-hK7UxWKW_c9Ju7TZ0tzOmsP9c') //'tPP6NfI3MUs5gL9O8+hK7UxWKW/c9Ju7TZ0tzOmsP9c'
+ */
+export function base64UrlToBase64(base64url: string): string {
+  let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding characters if necessary
+  const padding = base64.length % 4;
+  if (padding === 2) {
+    base64 += '==';
+  } else if (padding === 3) {
+    base64 += '=';
+  }
+  return base64;
+}
+
+/**
+ * 
+ * @param base64 :string
+ * @returns string
+ * @example base64ToBase64Url('SGVsbG8gV29ybGQ=') //'SGVsbG8gV29ybGQ'
+ * @example base64ToBase64Url('tPP6NfI3MUs5gL9O8+hK7UxWKW/c9Ju7TZ0tzOmsP9c') //'tPP6NfI3MUs5gL9O8-hK7UxWKW_c9Ju7TZ0tzOmsP9c'
+ */
+export function base64ToBase64url(base64: string): string {
+  let base64url = base64.replace(/\+/g, '-').replace(/\//g, '_');
+
+  const paddingIndex = base64url.indexOf('=');
+  
+  if (paddingIndex !== -1) {
+    base64url = base64url.substring(0, paddingIndex);
+  }
+
+  return base64url;
+}
+
 export const SHA256 = sha256;
 export const CBOR = cbor;
 export const BINARY_READER = BinaryReader

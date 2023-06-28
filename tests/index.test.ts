@@ -15,6 +15,8 @@ import {
   base64ToByteArray,
   base64ToString,
   base64ToHexString,
+  base64ToBase64url,
+  base64UrlToBase64,
   ASN1ECP256PublicKeyByteArrayToPEMString,
   getCredentialRegistrationData,
   CredentialRegistrationData,
@@ -258,6 +260,16 @@ test('base64ToHexString',()=>{
   expect(base64ToHexString("SGVsbG8gV29ybGQhIQ==",false)).toBe("48656c6c6f20576f726c642121")
 })
 
+
+//base64ToBase64url
+test('base64ToBase64url',()=>{
+  expect(base64ToBase64url("tPP6NfI3MUs5gL9O8+hK7UxWKW/c9Ju7TZ0tzOmsP9c=")).toBe("tPP6NfI3MUs5gL9O8-hK7UxWKW_c9Ju7TZ0tzOmsP9c")
+})
+
+//base64UrlToBase64
+test('base64UrlToBase64',()=>{
+  expect(base64UrlToBase64("tPP6NfI3MUs5gL9O8-hK7UxWKW_c9Ju7TZ0tzOmsP9c")).toBe("tPP6NfI3MUs5gL9O8+hK7UxWKW/c9Ju7TZ0tzOmsP9c=")
+})
 
 //getCredentialRegistrationData
 let credentialRegistrationData:CredentialRegistrationData = getCredentialRegistrationData(createdCredential)
