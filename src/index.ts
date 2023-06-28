@@ -473,11 +473,52 @@ export function base64ToString(base64: string): string {
 /**
  * @param base64:string
  * @returns string
- * @example base64ToHexString('SGVsbG8gV29ybGQ=') //'48656c6c6f20576f726c64'
- * @example base64ToHexString('SGVsbG8gV29ybGQh') //'48656c6c6f20576f726c6421'
- * @example base64ToHexString('SGVsbG8gV29ybGQhIQ==') //'48656c6c6f20576f726c642121'
+ * @example base64ToHexString('SGVsbG8gV29ybGQ=') //'48 65 6c 6c 6f 20 57 6f 72 6c 64'
+ * @example base64ToHexString('SGVsbG8gV29ybGQ=',false) //'48656c6c6f20576f726c64'
+ * @example base64ToHexString('SGVsbG8gV29ybGQh',false) //'48656c6c6f20576f726c6421'
+ * @example base64ToHexString('SGVsbG8gV29ybGQhIQ==',false) //'48656c6c6f20576f726c642121'
  *
  */
-export function base64ToHexString(base64: string): string {
-  return byteArrayToHexString(base64ToByteArray(base64));
+export function base64ToHexString(base64: string, space:boolean=true): string {
+  return byteArrayToHexString(base64ToByteArray(base64),space);
 }
+
+/**
+ * 
+ * @param base64url:string
+ * @returns string
+ * @example base64UrlToBase64('SGVsbG8gV29ybGQ') //'SGVsbG8gV29ybGQ='
+ * @example base64UrlToBase64('tPP6NfI3MUs5gL9O8-hK7UxWKW_c9Ju7TZ0tzOmsP9c') //'tPP6NfI3MUs5gL9O8+hK7UxWKW/c9Ju7TZ0tzOmsP9c'
+ */
+export function base64UrlToBase64(base64url: string): string {
+  let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  // Add padding characters if necessary
+  const padding = base64.length % 4;
+  if (padding === 2) {
+    base64 += '==';
+  } else if (padding === 3) {
+    base64 += '=';
+  }
+  return base64;
+}
+
+/**
+ * 
+ * @param base64 :string
+ * @returns string
+ * @example base64ToBase64Url('SGVsbG8gV29ybGQ=') //'SGVsbG8gV29ybGQ'
+ * @example base64ToBase64Url('tPP6NfI3MUs5gL9O8+hK7UxWKW/c9Ju7TZ0tzOmsP9c') //'tPP6NfI3MUs5gL9O8-hK7UxWKW_c9Ju7TZ0tzOmsP9c'
+ */
+export function base64ToBase64url(base64: string): string {
+  let base64url = base64.replace(/\+/g, '-').replace(/\//g, '_');
+
+  const paddingIndex = base64url.indexOf('=');
+  
+  if (paddingIndex !== -1) {
+    base64url = base64url.substring(0, paddingIndex);
+  }
+
+  return base64url;
+}
+
+export const SHA256 = sha256;

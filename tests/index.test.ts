@@ -15,6 +15,8 @@ import {
   base64ToByteArray,
   base64ToString,
   base64ToHexString,
+  base64ToBase64url,
+  base64UrlToBase64,
   ASN1ECP256PublicKeyByteArrayToPEMString,
   getCredentialRegistrationData,
   CredentialRegistrationData,
@@ -250,10 +252,24 @@ test('base64ToString',()=>{
 
 //base64ToHexString
 test('base64ToHexString',()=>{
-  expect(base64ToHexString("SGVsbG8gV29ybGQ=")).toBe("48656c6c6f20576f726c64")
-  expect(base64ToHexString("SGVsbG8gV29ybGQh")).toBe("48656c6c6f20576f726c6421")
-  expect(base64ToHexString("SGVsbG8gV29ybGQhIQ==")).toBe("48656c6c6f20576f726c642121")
+  expect(base64ToHexString("SGVsbG8gV29ybGQ=",)).toBe("48 65 6c 6c 6f 20 57 6f 72 6c 64")
+  expect(base64ToHexString("SGVsbG8gV29ybGQh")).toBe("48 65 6c 6c 6f 20 57 6f 72 6c 64 21")
+  expect(base64ToHexString("SGVsbG8gV29ybGQhIQ==")).toBe("48 65 6c 6c 6f 20 57 6f 72 6c 64 21 21")
+  expect(base64ToHexString("SGVsbG8gV29ybGQ=",false)).toBe("48656c6c6f20576f726c64")
+  expect(base64ToHexString("SGVsbG8gV29ybGQh",false)).toBe("48656c6c6f20576f726c6421")
+  expect(base64ToHexString("SGVsbG8gV29ybGQhIQ==",false)).toBe("48656c6c6f20576f726c642121")
 })
+
+//base64ToBase64url
+test('base64ToBase64url',()=>{
+  expect(base64ToBase64url("tPP6NfI3MUs5gL9O8+hK7UxWKW/c9Ju7TZ0tzOmsP9c=")).toBe("tPP6NfI3MUs5gL9O8-hK7UxWKW_c9Ju7TZ0tzOmsP9c")
+})
+
+//base64UrlToBase64
+test('base64UrlToBase64',()=>{
+  expect(base64UrlToBase64("tPP6NfI3MUs5gL9O8-hK7UxWKW_c9Ju7TZ0tzOmsP9c")).toBe("tPP6NfI3MUs5gL9O8+hK7UxWKW/c9Ju7TZ0tzOmsP9c=")
+})
+
 
 
 //getCredentialRegistrationData
