@@ -67,4 +67,7 @@ export declare function stringSHA256(message: string | Uint8Array): string;
 export declare function stringToHexString(str: string): string;
 export declare function base64ToByteArray(base64: string): Uint8Array;
 export declare function base64ToString(base64: string): string;
-export declare function base64ToHexString(base64: string): string;
+export declare function base64ToHexString(base64: string, space?: boolean): string;
+export declare function base64UrlToBase64(base64url: string): string;
+export declare function base64ToBase64url(base64: string): string;
+export declare const SHA256: import("js-sha256").Hash;
