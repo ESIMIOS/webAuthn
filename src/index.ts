@@ -460,6 +460,7 @@ export function stringToHexString(str: string): string {
  */
 export function base64ToByteArray(base64: string): Uint8Array {
   let response = new Uint8Array();
+  base64 = isBase64Url(base64)?base64UrlToBase64(base64):base64;
   if (base64) {
     response = byteBase64.base64ToBytes(base64);
   }
@@ -475,6 +476,7 @@ export function base64ToByteArray(base64: string): Uint8Array {
  * @example base64ToString('SGVsbG8gV29ybGQhIQ==') //'Hello World!!'
  */
 export function base64ToString(base64: string): string {
+  base64 = isBase64Url(base64)?base64UrlToBase64(base64):base64;
   return byteArrayToString(base64ToByteArray(base64));
 }
 
@@ -491,9 +493,15 @@ export function base64ToString(base64: string): string {
  *
  */
 export function base64ToHexString(base64: string, separator: boolean = true): string {
+  base64 = isBase64Url(base64)?base64UrlToBase64(base64):base64;
   return byteArrayToHexString(base64ToByteArray(base64), separator);
 }
 
+
+export function isBase64Url(base64:string) {
+  const base64UrlPattern = /^[A-Za-z0-9_-]+$/;
+  return base64UrlPattern.test(base64);
+}
 
 /**
  * 
