@@ -3,9 +3,6 @@
 	"version": "0.0.7",
 	"description": "Utilidades para el uso de WebAuthn",
 	"main": "/lib/index.js",
-	"files": [
-		"lib/**/*"
-	],
 	"types": "lib/index.d.ts",
 	"scripts": {
 		"test": "jest --config jestconfig.json",
