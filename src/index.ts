@@ -140,7 +140,7 @@ export function getCredentialRegistrationData(credential: PublicKeyCredential): 
         credentialIdLength: byteArrayRange(decodedAttestationObj.authData, 53, 2),
         credentialId: credentialId,
         credentialPublicKey: credentialPublicKey,
-        publicKey
+        publicKey,
       },
     },
     type: credential.type,
@@ -264,7 +264,15 @@ export function ASN1ECP256PublicKeyByteArrayToPEMString(pkBuffer: Uint8Array): s
  * @example stringToByteArray('Hello World') // Uint8Array(11) [72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100]
  */
 export function stringToByteArray(str: string): Uint8Array {
-  return Uint8Array.from(str, (c) => c.charCodeAt(0));
+  let encoder = null;
+  if (globalThis.TextEncoder) {
+    encoder = new globalThis.TextEncoder();
+  } else {
+    let TextEncoder = require('util').TextEncoder;
+    encoder = new TextEncoder();
+  }
+  const response = encoder.encode(str);
+  return response;
 }
 
 /**
@@ -460,7 +468,7 @@ export function stringToHexString(str: string): string {
  */
 export function base64ToByteArray(base64: string): Uint8Array {
   let response = new Uint8Array();
-  base64 = isBase64Url(base64)?base64UrlToBase64(base64):base64;
+  base64 = isBase64Url(base64) ? base64UrlToBase64(base64) : base64;
   if (base64) {
     response = byteBase64.base64ToBytes(base64);
   }
@@ -476,7 +484,7 @@ export function base64ToByteArray(base64: string): Uint8Array {
  * @example base64ToString('SGVsbG8gV29ybGQhIQ==') //'Hello World!!'
  */
 export function base64ToString(base64: string): string {
-  base64 = isBase64Url(base64)?base64UrlToBase64(base64):base64;
+  base64 = isBase64Url(base64) ? base64UrlToBase64(base64) : base64;
   return byteArrayToString(base64ToByteArray(base64));
 }
 
@@ -493,18 +501,17 @@ export function base64ToString(base64: string): string {
  *
  */
 export function base64ToHexString(base64: string, separator: boolean = true): string {
-  base64 = isBase64Url(base64)?base64UrlToBase64(base64):base64;
+  base64 = isBase64Url(base64) ? base64UrlToBase64(base64) : base64;
   return byteArrayToHexString(base64ToByteArray(base64), separator);
 }
 
-
-export function isBase64Url(base64:string) {
+export function isBase64Url(base64: string) {
   const base64UrlPattern = /^[A-Za-z0-9_-]+$/;
   return base64UrlPattern.test(base64);
 }
 
 /**
- * 
+ *
  * @param base64url:string
  * @returns string
  * @example base64UrlToBase64('SGVsbG8gV29ybGQ') //'SGVsbG8gV29ybGQ='
@@ -523,7 +530,7 @@ export function base64UrlToBase64(base64url: string): string {
 }
 
 /**
- * 
+ *
  * @param base64 :string
  * @returns string
  * @example base64ToBase64Url('SGVsbG8gV29ybGQ=') //'SGVsbG8gV29ybGQ'
@@ -533,7 +540,7 @@ export function base64ToBase64url(base64: string): string {
   let base64url = base64.replace(/\+/g, '-').replace(/\//g, '_');
 
   const paddingIndex = base64url.indexOf('=');
-  
+
   if (paddingIndex !== -1) {
     base64url = base64url.substring(0, paddingIndex);
   }
@@ -543,6 +550,6 @@ export function base64ToBase64url(base64: string): string {
 
 export const SHA256 = sha256;
 export const CBOR = cbor;
-export const BINARY_READER = BinaryReader
-export const CBOR_SIMPLE_DECODER = CborSimpleDecoder
-export const BYTE_BASE64 = byteBase64
+export const BINARY_READER = BinaryReader;
+export const CBOR_SIMPLE_DECODER = CborSimpleDecoder;
+export const BYTE_BASE64 = byteBase64;

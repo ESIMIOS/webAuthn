@@ -1,6 +1,6 @@
 {
 	"name": "webauthn",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"description": "Utilidades para el uso de WebAuthn",
 	"main": "/lib/index.js",
 	"types": "lib/index.d.ts",
